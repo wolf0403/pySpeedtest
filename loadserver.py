@@ -8,24 +8,45 @@ import requests
 serverxml = './servers.xml'
 serverjson = './servers.json'
 
-def loadservers():
+def loadservers(saveXml=False):
 	'''
 	Load server array from either XML or JSON
-	return python map
+	1. if saveXml, remove JSON and XML to force reload
+	2. if JSON not exists, load XML from server, convert to JSON
+	3. load results from JSON
+	return python dict from JSON data
 	'''
 	jsondata = {}
-	if os.path.exists (serverjson):
-		with open(serverjson, 'r') as f:
-			jsondata = json.load (f)
-	elif not os.path.exists (serverxml):
+	if saveXml:
+		# force reload XML by removing JSON cache
+		try:
+			os.unlink (serverxml)
+		except:
+			pass
+		try:
+			os.unlink (serverjson)
+		except:
+			pass
+
+	if not os.path.exists(serverjson):
 		r = requests.get ('http://speedtest.net/speedtest-servers.php')
 		if r.ok:
 			with open(serverxml, 'w') as f:
-				print >>f, r.content
+				f.write (r.content)
+
 	if os.path.exists (serverxml):
 		with open(serverxml, 'r') as f, open(serverjson, 'w') as outf:
 			jsondata = convert_servers (f, output=outf)
-		os.unlink (serverxml)
+		if jsondata is not None:
+			if not saveXml:
+				os.unlink (serverxml)
+		else:
+			print >>sys.stderr, "Parse server XML list failed."
+	elif os.path.exists (serverjson):
+		with open(serverjson, 'r') as f:
+			jsondata = json.load (f)
+			if len(jsondata) == 0:
+				jsondata = None
 	return jsondata
 
 def convert_servers(src, output=None):
@@ -41,15 +62,21 @@ def convert_servers(src, output=None):
 			smap[c] = {s.attrib['url'] : dict(s.attrib)}
 		else:
 			url = s.attrib['url']
-			if url.endswith ('/upload.php'):
-				url = url[:url.rindex('/') + 1]
-			smap[c][url] = (dict(s.attrib))
-	if output is not None:
-		output.write (json.dumps (smap, indent=2))
-	return smap
+			ridx = url.rindex('/')
+			fn = url[ridx+1:]
+			if fn.startswith ('upload.'):
+				url = url[:ridx + 1]
+				smap[c][url] = (dict(s.attrib))
+			else:
+				print >>sys.stderr, "MISSING upload.php: ", url
+	if len(smap) > 0:
+		if output is not None:
+			output.write (json.dumps (smap, indent=2))
+		return smap
+	return None
 	
 if __name__ == '__main__':
 	if len(sys.argv) > 1: # convert given XML
 		convert_servers (sys.argv[1], sys.stdout)
 	else: # download server list and convert to JSON
-		loadservers ()
+		loadservers ('SAVE_XML' in os.environ)
