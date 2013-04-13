@@ -58,14 +58,15 @@ def convert_servers(src, output=None):
 	smap = {}
 	for s in servers:
 		c = s.attrib['cc']
+		url = s.attrib['url']
+		ridx = url.rindex('/')
+		fn = url[ridx+1:]
+		url = url[:ridx + 1]
+
 		if c not in smap:
-			smap[c] = {s.attrib['url'] : dict(s.attrib)}
+			smap[c] = {url : dict(s.attrib)}
 		else:
-			url = s.attrib['url']
-			ridx = url.rindex('/')
-			fn = url[ridx+1:]
 			if fn.startswith ('upload.'):
-				url = url[:ridx + 1]
 				smap[c][url] = (dict(s.attrib))
 			else:
 				print >>sys.stderr, "MISSING upload.php: ", url
