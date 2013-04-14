@@ -4,6 +4,7 @@
 
 import sys, os, json
 import requests
+from lxml import etree
 
 serverxml = './servers.xml'
 serverjson = './servers.json'
@@ -50,7 +51,6 @@ def loadservers(saveXml=False):
 	return jsondata
 
 def convert_servers(src, output=None):
-	from lxml import etree
 	parser = etree.XMLParser ()
 	tree = etree.parse (src, parser)
 	root = tree.getroot()
