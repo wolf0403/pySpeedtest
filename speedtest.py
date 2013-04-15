@@ -152,7 +152,7 @@ def __test__():
 if __name__ == '__main__':
 	if len(sys.argv) < 2:
 		print >>sys.stderr, "%s <url>" % sys.argv[0]
-		print >>sys.stderr, "%s <CC> <Company> <Name>" % sys.argv[0]
+		#print >>sys.stderr, "%s <CC> <Company> <Name>" % sys.argv[0]
 		sys.exit (1)
 	if len(sys.argv) == 2:
 		url = sys.argv[1]
@@ -166,4 +166,4 @@ if __name__ == '__main__':
 		avg_speed = download (url)
 		#avg_speed = reduce (lambda x, y: x + y, speed.values()) / len(speed)
 		print "Speed: ", print_speed (avg_speed, bps=True)
-	
+
