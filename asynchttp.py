@@ -316,10 +316,10 @@ def print_speed(s, fmt="%.2f %s"):
     unit = "Bytes/sec"
     if s > 1024:
         unit = "KBytes/sec"
+        s /= 1024
         if s > 1024:
             unit = "MBytes/sec"
             s /= 1024
-        s /= 1024
     return fmt % (s, unit)
 
 
